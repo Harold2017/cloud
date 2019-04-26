@@ -1,0 +1,112 @@
+#
+# PLEASE READ https://ovh.github.io/cds/hosting/ready-to-run/docker-compose/
+#
+
+version: '3'
+
+services:
+  cds-db:
+    image: postgres:9.6.2
+    environment:
+      POSTGRES_PASSWORD: cds
+      POSTGRES_USER: cds
+
+  cds-cache:
+    image: redis:alpine
+    command: redis-server --requirepass cds
+    ports:
+      - "6379:6379"
+
+  cds-migrate:
+    image: ovhcom/cds-engine:latest
+    command: /app/cds-engine-linux-amd64 database upgrade --db-host cds-db --db-user cds --db-password cds --db-name cds --db-sslmode disable  --migrate-dir /app/sql
+    links:
+       - cds-db
+
+  cds-api:
+    image: ovhcom/cds-engine:latest
+    command: sh -c "/app/cds-engine-linux-amd64 start api"
+    volumes:
+      # Replace /tmp with a consistent and backuped directory or use a cloud storage
+      - /tmp:/app/artifacts
+    environment:
+      CDS_API_DATABASE_HOST: cds-db
+      CDS_API_URL_API: http://${HOSTNAME}:8081
+      CDS_API_URL_UI: http://${HOSTNAME}:2015
+      CDS_API_AUTH_DEFAULTGROUP: cdsdemo
+      CDS_LOG_LEVEL: info
+      CDS_API_CACHE_MODE: redis
+      CDS_API_CACHE_REDIS_HOST: cds-cache:6379
+      CDS_API_CACHE_REDIS_PASSWORD: cds
+      CDS_API_DIRECTORIES_DOWNLOAD: /app
+      CDS_API_DIRECTORIES_KEYS: /app/keys
+      CDS_API_ARTIFACT_LOCAL_BASEDIRECTORY: /app/artifacts
+      CDS_API_AUTH_SHAREDINFRATOKEN: changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit
+      CDS_API_SECRETS_KEY: changeitchangeitchangeitchangeit
+      # This is a test key, you MUST change it
+      # ssh-keygen -t rsa -C "your_email@example.com"
+      CDS_API_AUTH_RSAPRIVATEKEY: "-----BEGIN RSA PRIVATE KEY-----\nMIIEogIBAAKCAQEAj3YCi33CaIiWfhsYz3lxOGjDSxxtA+LM4dDjIFe3Xq+gntcg\n1WKFoAsnHFgC3sOoZKSeIjuBIsGXvfOzOs10EdlU388bAOP51NmsGLtVwBSpYQkQ\nFGb1QricuZy6BZB0JiBM9raz5ikszG3m52opS3pibw19ZyvUSSjHAiXEaJpML0m/\nYiKowrf2bO2cFbSATCDEhK5pDhzllRhLOkST/VH3QSrKL0xydKNjGmmJDlpM2xKT\n7Vbb2DkMPl4kVnYf/XveojS0GSbsQaIS17WEMayP4ch9g27E5GMp0+IZ7w9Dq/ai\n7T+hMqlkFfajB97zTqHFRD4hMITckjpPlPx8WwIDAQABAoIBABpC8xJP8i+qmUn6\ncd9BDu3Rl7Z/PKGSegj4cStxgzrNEa0iGnuVbnqur/krT1MyI/hQfjYsCGaxY7K9\nEtk31QCTdUsHIZ1XHlvNgQiB+p+P6LW/r/bcJheRrfb4bsEoAWsdTJl5NpNyhCXk\nFHnWYDrV64ECyisBxfmiglOtUDgJht1IKgIp9vULWJPQ7/PYRc7R7kpfiSGTPgmP\nLV/20edWfBsbxPR/2rL5azpL3YIkJgNDRrnieDHzuOJ86FzICWq8gLhta9j5FARG\n0PSs0Myy9ucfAu+lVi4S5/GsyfEiljXznGyQxFwR9EZp+BZEBvdFtkIod48d0DQy\nt7xmrEECgYEA8KU+9O1pC/B8/61ZLLMEgq7EQ1qUDZ5cNSIJoTf9vvCQD+hCbtwY\nWgq+MIYR0dNn8MxAmwsZeAFfu9USJNiDKzc7yYSQ4OJXHXk33895UllsZdpaj5cc\nhGkxnr8JMdWLIsmeCF8F9mIQywV+QLmjPQVW8VBYFY4+0dbrfmtIYSECgYEAmJ1U\n6klHtEWv+Msc8Yjg/d5oPQuBy9ilRv97g5ilaHQ4aMDvsiV1HCxER0NA85jjCP+/\nulYwoLWgV+WObbEGeg+B929oHRSFp/XTvEWhoOxAAICMrVwQ6qX5yPOAKtPKmkop\nm6PbzM+QrIRw0cYXEZEVG3Cme8x+sHKQ54CAIfsCgYBGzig3Ar+8zpbI1+V8HHRA\nS1HeC4GyfBzfWVOCByp3CusocwtQ+RuFKtIJDvmhRlW36TE9LUfiIm1bo/bBtp7p\nkUfbJFFIifBd8LO6+53T2BHn6hZpV2oBn74E2mrHKfDVXINOLT9g3jvYsJYUT0qz\ngqWxPRWdygu7zEPgH4rdYQKBgBzvDy9P71k9MQyhLX6ZbdaTuP2B1fzYuRUJ0Nf1\nM77m8d7iXU9QDLDnr5Y3KPRGEx0cp7PjLVr6tEiVy/f97PVtRT2tEHca8fATCi6S\noP8Ka2Ps+z7OyqJCD2ZKzAzSlIHF97d7TGu7Gnmqrl0HCk6ZTAAkzluAPLClN9W8\nJg7LAoGAFxXOBXuGB+Lsbgioka0vM1mGYWEKjobPcQRkMq37b6GdkhMl2A5fH4C+\nuhOrSSJ8cK0UO9ET6DV6V5MuQoEAMVYt8v39fxOnrH7sX2OwTqXOqK7b27vfcY+g\nG6f1bOI7lNhA4uAqZICcXO8cxwEa8xoeuPFT2I0R8tzAD5GhIto=\n-----END RSA PRIVATE KEY-----"
+
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    links:
+       - cds-db
+       - cds-cache
+
+  cds-ui:
+    image: ovhcom/cds-ui:latest
+    environment:
+      BACKEND_HOST: cds-api:8081
+      BASE_URL: /
+    ports:
+      - "2015:2015"
+    links:
+       - cds-api
+
+  # The docker engine must be accessible from this container
+  # The hatchery swarm uses standard docker environment variables like
+  # DOCKER_HOST: tcp://${HOSTNAME}:2376 or tcp://${HOSTNAME}:2375 if you use an unsecured docker engine
+  # DOCKER_CERT_PATH: /Users/me/.docker/machines/.client
+  # DOCKER_TLS_VERIFY: 1
+  #
+  # If you don't want to open the docker tcp post, you can bind the docker socket in the volumes section 
+  # and set DOCKER_HOST to unix://var/run/docker.sock
+  #
+  # If your are a Docker for Desktop user (Docker4Mac or Docker4Windows) you will probably have to bind 
+  # your docker socket to a tcp port with a socat like
+  # docker run -d -v /var/run/docker.sock:/var/run/docker.sock -p 2376:2375 bobrik/socat TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
+  cds-hatchery-swarm:
+    image: ovhcom/cds-engine:latest
+    command: /app/cds-engine-linux-amd64 start hatchery:swarm
+    environment:
+      CDS_HATCHERY_SWARM_COMMONCONFIGURATION_NAME: hatchery-swarm
+      CDS_HATCHERY_SWARM_COMMONCONFIGURATION_API_TOKEN: changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit
+      DOCKER_HOST: tcp://${HOSTNAME}:2375
+      # CDS_LOG_LEVEL: debug
+      # DOCKER_HOST: unix://var/run/docker.sock
+      # DOCKER_CERT_PATH: /Users/me/.docker/machines/.client
+      # DOCKER_TLS_VERIFY: 1
+      # CDS_HATCHERY_SWARM_COMMONCONFIGURATION_API_HTTP_URL will be use by hatchery to communicate with cds-api
+      # and by container spawned by hatchery to download the binary worker from api.
+      CDS_HATCHERY_SWARM_COMMONCONFIGURATION_API_HTTP_URL: http://${HOSTNAME}:8081
+      CDS_HATCHERY_SWARM_MAXCONTAINERS: 4
+    #volumes:
+       # Uncomment this to bind the docker socket
+       # - /var/run/docker.sock:/var/run/docker.sock
+
+  cds-hatchery-local:
+    image: ovhcom/cds-engine:latest
+    command: sh -c "PATH=$PATH:/app /app/cds-engine-linux-amd64 start hatchery:local"
+    environment:
+      CDS_HATCHERY_LOCAL_COMMONCONFIGURATION_NAME: hatchery-local
+      CDS_HATCHERY_LOCAL_COMMONCONFIGURATION_API_TOKEN: changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit
+      CDS_HATCHERY_LOCAL_COMMONCONFIGURATION_URL: http://cds-hatchery-local:8086
+      CDS_HATCHERY_LOCAL_COMMONCONFIGURATION_API_HTTP_URL: http://cds-api:8081
+      CDS_HATCHERY_LOCAL_NBPROVISION: 5
+    links:
+       - cds-api
+
+volumes:
+  cds-artifacts-volume:
+    driver: local
