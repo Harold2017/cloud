@@ -90,8 +90,7 @@ fabric.properties
 .idea/*
 
 # yaml
-*.yaml
-*.yml
+cluster.yml
 
 # kubeconfig
 kubeconfig
