@@ -88,3 +88,10 @@ fabric.properties
 
 # idea
 .idea/*
+
+# yaml
+*.yaml
+*.yml
+
+# kubeconfig
+kubeconfig
