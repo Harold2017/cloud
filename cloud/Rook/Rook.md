@@ -144,4 +144,4 @@ Rook with Ceph is at Stable status where others are Alpha or Beta
 - stop minikube
   - `minikube stop`
 
-- [ ] TODO: Rook with Ceph on aws
+- [x] TODO: Rook with Ceph on aws

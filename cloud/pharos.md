@@ -13,7 +13,7 @@
   `curl -s https://get.pharos.sh | bash`
   * login
   `chpharos login`
-  * install phros cli tool binaries
+  * install pharos cli tool binaries
   `chpharos install latest+oss --use`
 
 * prepare nodes for k8s cluster
@@ -24,10 +24,12 @@
 
 * bootstrap k8s cluster
   * in the same dir where cluster.yml file, run
-  `pharos up -c cluster.yml` (--force if need update phraos)
+  `pharos up -c cluster.yml` (--force if need update pharos) (add `-d` for debug info)
+  * port config of node: https://github.com/kontena/pharos-docs/blob/master/networking/firewalld.md
   * watchout: if add nodes to the existed cluster, the new nodes should be in the same VPC (subnet) with cluster
 
 * interact with the cluster
   * get kubeconfig file and run
   `pharos kubeconfig > kubeconfig`
   `export KUBECONFIG=./kubeconfig`
+  
