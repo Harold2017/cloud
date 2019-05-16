@@ -82,3 +82,5 @@ kops create cluster \
 
 * delete the cluster
     `kops delete cluster --name ${KOPS_CLUSTER_NAME} --yes`
+
+* [set instance storage size](https://github.com/kubernetes/kops/blob/master/docs/instance_groups.md)

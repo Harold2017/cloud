@@ -67,7 +67,7 @@ rook-ceph       Active   9m10s
 ## Use KOPS instead of Pharos
 
 - create cluster as stated in `kops.md`
-- `kubectl create -f common.yaml`, `kubectl create -f operator.yaml`
+- `kubectl create --save-config -f common.yaml`, `kubectl create --save-config -f operator.yaml`
 
     ```bash
     ➜  cloud git:(master) ✗ kubectl get pods --all-namespaces
@@ -94,7 +94,9 @@ rook-ceph       Active   9m10s
     rook-ceph     rook-discover-mmswt                                     1/1     Running   0          5m
     ```
 - successfully create `rook-ceph` on cluster...
-- `kubectl create -f cluster.yaml`
+- `kubectl create --save-config -f cluster.yaml`
+  - try to change the CPU and RAM config in `cluster.yaml`, but got this error log: `2019-05-16 06:11:16.848773 E | op-cluster: failed to create cluster in namespace rook-ceph. failed to start the mons. refuse to run the pod with 512mb of ram, provide at least 1024mb.` Re-config it and `kubectl apply -f cluster.yaml`
+  - watch the log: `watch "kubectl logs -n rook-ceph -l app=rook-ceph-operator"`
 
     ```bash
     ➜  cloud git:(master) ✗ kubectl get pods --namespace rook-ceph
@@ -184,3 +186,9 @@ rook-ceph       Active   9m10s
 
       - [peering problem for `stuck inactive` pg](http://docs.ceph.com/docs/master/rados/troubleshooting/troubleshooting-pg/#stuck-placement-groups)
       - from former pod info, osd-prepare NOT ready and hang there... need find the reason
+  - upgrade kops to latest version (1.12.0) to enable using t3 instances on aws
+    - rook-ceph stuck at `rook-ceph-detect-version`, have to delete it -> `kubectl -n rook-ceph delete job rook-ceph-detect-version`
+    - now stuck at `op-cluster: unknown ceph major version. failed to complete version job. failed to detect job . jobs.batch "rook-ceph-detect-version" not found`
+    - delete all rook-ceph pods
+    - re-create all pods
+    - still stuck at this job...
