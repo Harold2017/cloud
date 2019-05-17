@@ -84,3 +84,11 @@ kops create cluster \
     `kops delete cluster --name ${KOPS_CLUSTER_NAME} --yes`
 
 * [set instance storage size](https://github.com/kubernetes/kops/blob/master/docs/instance_groups.md)
+
+* export kubeconfig
+  * > https://github.com/kubernetes/kops/blob/master/docs/cli/kops_export_kubecfg.md
+
+    ```bash
+    kops export kubecfg --kubeconfig ./example_yaml/kubeconfig
+    kops has set your kubectl context to harold.k8s.local
+    ```

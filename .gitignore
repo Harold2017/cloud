@@ -94,3 +94,6 @@ cluster.yml
 
 # kubeconfig
 kubeconfig
+
+# cdsctl
+*cdsctl
