@@ -367,3 +367,109 @@ rook-ceph       Active   9m10s
         ```
 
       - my cluster config: t3.medium as master, 3 t3.small as node, master volume size 64GB, node voulmn size 128GB
+
+- create pool and storageclass
+  - `kubectl create -f storageclass.yaml`
+    - `kubectl get sc`
+
+      ```bash
+      ➜  Notes git:(master) kubectl get sc
+      NAME              PROVISIONER             AGE
+      default           kubernetes.io/aws-ebs   5h25m
+      gp2 (default)     kubernetes.io/aws-ebs   5h25m
+      rook-ceph-block   ceph.rook.io/block      73m
+        ```
+
+    - `kubectl get sc rook-ceph-block -o yaml`
+
+      ```bash
+      ➜  Notes git:(master) kubectl get sc rook-ceph-block -o yaml
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        creationTimestamp: "2019-05-17T08:33:32Z"
+        name: rook-ceph-block
+        resourceVersion: "38919"
+        selfLink: /apis/storage.k8s.io/v1/storageclasses/rook-ceph-block
+        uid: 74a8f9d9-787e-11e9-a3e2-0a96c25a44aa
+      parameters:
+        blockPool: replicapool
+        clusterNamespace: rook-ceph
+        fstype: xfs
+      provisioner: ceph.rook.io/block
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
+      ```
+
+- create pvc and use former rbd storageclass
+  - `kubectl create -f test-pvc.yaml`
+  - `kubectl get pvc`
+
+    ```bash
+    NAME        STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+    testclaim   Bound    pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa   8Gi        RWO            rook-ceph-block   47s
+    ```
+
+  - check on ceph cluster
+    - `kubectl -n rook-ceph exec -it rook-ceph-tools-689646bb64-jbfzz bash`
+    - `rbd info -p replicapool pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa`
+
+    ```bash
+    [root@ip-172-20-35-247 /]# rbd info -p replicapool pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa
+    rbd image 'pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa':
+            size 8 GiB in 2048 objects
+            order 22 (4 MiB objects)
+            snapshot_count: 0
+            id: 373216d05a84
+            block_name_prefix: rbd_data.373216d05a84
+            format: 2
+            features: layering
+            op_features: 
+            flags: 
+            create_timestamp: Fri May 17 09:56:13 2019
+            access_timestamp: Fri May 17 09:56:13 2019
+            modify_timestamp: Fri May 17 09:56:13 2019
+    ```
+
+- create a pod and use former rbd pvc
+  - `kubectl create -f test-pvc-pod.yaml`
+    - stuck at `ContainerCreating`
+    - check with `kubectl describe -n rook-ceph pods/test-pod-rbd`
+
+      ```bash
+      Events:
+      Type     Reason       Age                  From                                    Message
+      ----     ------       ----                 ----                                    -------
+      Normal   Scheduled    3m32s                default-scheduler                       Successfully assigned rook-ceph/test-pod-rbd to ip-172-20-35-247.ec2.internal
+      Warning  FailedMount  89s                  kubelet, ip-172-20-35-247.ec2.internal  Unable to mount volumes for pod "test-pod-rbd_rook-ceph(11862d9b-788b-11e9-a3e2-0a96c25a44aa)": timeout expired waiting for volumes to attach or mount for pod "rook-ceph"/"test-pod-rbd". list of unmounted volumes=[data]. list of unattached volumes=[data default-token-dvm5n]
+      Warning  FailedMount  83s (x9 over 3m32s)  kubelet, ip-172-20-35-247.ec2.internal  MountVolume.SetUp failed for volume "pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa" : mount command failed, status: Failure, reason: failed to mount volume /dev/rbd0 [xfs] to /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa, error executable file not found in $PATH
+      ```
+
+    - check with `kubectl get pvc -o yaml`
+    - check with ``
+
+      ```bash
+      ➜  Rook git:(master) ✗ kubectl describe -n rook-ceph pvc
+      Name:          testclaim
+      Namespace:     rook-ceph
+      StorageClass:  rook-ceph-block
+      Status:        Bound
+      Volume:        pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa
+      Labels:        <none>
+      Annotations:   pv.kubernetes.io/bind-completed: yes
+                    pv.kubernetes.io/bound-by-controller: yes
+                    volume.beta.kubernetes.io/storage-provisioner: ceph.rook.io/block
+      Finalizers:    [kubernetes.io/pvc-protection]
+      Capacity:      8Gi
+      Access Modes:  RWO
+      Events:
+        Type       Reason                 Age   From                                                                                         Message
+        ----       ------                 ----  ----                                                                                         -------
+        Normal     ExternalProvisioning   18m   persistentvolume-controller                                                                  waiting for a volume to be created, either by external provisioner "ceph.rook.io/block" or manually created by system administrator
+        Normal     Provisioning           18m   ceph.rook.io/block_rook-ceph-operator-7b976856bf-zhpnx_c7da6a05-785b-11e9-89fd-92783ff72dd5  External provisioner is provisioning volume for claim "rook-ceph/testclaim"
+        Normal     ProvisioningSucceeded  18m   ceph.rook.io/block_rook-ceph-operator-7b976856bf-zhpnx_c7da6a05-785b-11e9-89fd-92783ff72dd5  Successfully provisioned volume pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa
+      Mounted By:  test-pod-rbd
+      ```
+
+    - why `failed to mount volume /dev/rbd0 [xfs]`?
+    - > [similar confi with this example but why i failed?](https://docs.openshift.com/container-platform/3.5/install_config/storage_examples/ceph_rbd_dynamic_example.html#ceph-rbd-dynamic-example-setting-default-secret)

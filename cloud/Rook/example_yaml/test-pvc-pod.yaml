@@ -1,0 +1,24 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: test-pod-rbd
+  namespace: rook-ceph
+  labels:
+    test-rbd: "true"
+spec:
+  containers:
+  - name: test-pod
+    image: busybox:latest
+    command:
+    - "/bin/sh"
+    args:
+    - "-c"
+    - "trap exit TERM; while true; do sleep 1; done"
+    volumeMounts:
+    - name: data
+      mountPath: "/mnt"
+      readOnly: false
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: testclaim
