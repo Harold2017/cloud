@@ -549,3 +549,135 @@ rook-ceph       Active   9m10s
     - still `wrong fs type, bad option, bad superblock`
     - after changing 'fstype' from `xfs` to `ext4` in `storageclass2.yaml`, this got solved: `test-pod-rbd2                                               1/1     Running             0          6m47s`
     - but why? i thought ceph should take storage as raw and formate it by itself, but it seems not? need investigate more about ceph...
+    - check in rbd pod: `kubectl exec -it test-pod-rbd sh`
+
+      ```bash
+      ➜  Rook git:(master) kubectl exec -it test-pod-rbd2 sh
+      / # mount | grep rbd
+      /dev/rbd0 on /mnt type ext4 (rw,relatime,stripe=1024,data=ordered)
+      ```
+
+    - delete former failed mount osd pool
+
+      ```bash
+      `kubectl exec -it rook-ceph-tools-689646bb64-pjr2t bash`
+
+      [root@ip-172-20-35-247 /]# ceph osd pool delete replicapool replicapool true
+      pool 'replicapool' removed
+      ```
+
+- create object storage
+![ceph object gateway](http://docs.ceph.com/docs/master/_images/ditaa-50d12451eb76c5c72c4574b08f0320b39a42e5f1.png)
+  - https://github.com/rook/rook/blob/master/Documentation/ceph-object.md
+  - `kubectl apply -f object.yaml`
+  - confirm object storage is configured
+
+    ```bash
+    ➜  Rook git:(master) ✗ kubectl -n rook-ceph get pod -l app=rook-ceph-rgw
+    NAME                                      READY   STATUS    RESTARTS   AGE
+    rook-ceph-rgw-my-store-5ddc4784cc-wntb2   1/1     Running   0          14m
+    ```
+
+  - create object storage user: `kubectl create -f object-user.yaml`
+  - confirm object storage user is configured, describe the secret
+
+    ```bash
+    ➜  Rook git:(master) ✗ kubectl -n rook-ceph describe secret rook-ceph-object-user-my-store-my-user
+    Name:         rook-ceph-object-user-my-store-my-user
+    Namespace:    rook-ceph
+    Labels:       app=rook-ceph-rgw
+                  rook_cluster=rook-ceph
+                  rook_object_store=my-store
+                  user=my-user
+    Annotations:  <none>
+
+    Type:  kubernetes.io/rook
+
+    Data
+    ====
+    SecretKey:  40 bytes
+    AccessKey:  20 bytes
+    ```
+
+  - directly retrieve secrets
+
+    ```bash
+    kubectl -n rook-ceph get secret rook-ceph-object-user-my-store-my-user -o yaml | grep AccessKey | awk '{print $2}' | base64 --decode
+    kubectl -n rook-ceph get secret rook-ceph-object-user-my-store-my-user -o yaml | grep SecretKey | awk '{print $2}' | base64 --decode
+    ```
+
+  - use toolbox to evaluate object storage
+    - install s3cmd on toolbox pod: `yum --assumeyes install s3cmd`
+    - set connection env
+      - `Host`: the DNS host name where the rgw service is found in the cluster
+      - `Endpoint`: the endpoint where the rgw service is listening. run `kubectl -n rook-ceph get svc rook-ceph-rgw-my-store`, then combine the clusterIP and the port.
+
+      ```bash
+      export AWS_HOST=rook-ceph-rgw-my-store.rook-ceph
+      export AWS_ENDPOINT=100.67.71.247:80
+      export AWS_ACCESS_KEY_ID=<accessKey>
+      export AWS_SECRET_ACCESS_KEY=<secretKey>
+      ```
+
+    - create a bucket
+      - create a bucket in the object storage: `s3cmd mb --no-ssl --host=${AWS_HOST} --host-bucket=  s3://rookbucket`
+      - list buckets in the object storage: `s3cmd ls --no-ssl --host=${AWS_HOST}`
+
+        ```bash
+        [root@ip-172-20-35-247 /]# s3cmd mb --no-ssl --host=${AWS_HOST} --host-bucket=  s3://rookbucket
+        Bucket 's3://rookbucket/' created
+        [root@ip-172-20-35-247 /]# s3cmd ls --no-ssl --host=${AWS_HOST}
+        2019-05-20 07:20  s3://rookbucket
+        ```
+
+    - PUT or GET an object
+      - upload a file to the newly created bucket
+
+        ```bash
+        [root@ip-172-20-35-247 /]# echo "Hello Rook" > /tmp/rookObj
+        [root@ip-172-20-35-247 /]# s3cmd put /tmp/rookObj --no-ssl --host=${AWS_HOST} --host-bucket=  s3://rookbucket
+        upload: '/tmp/rookObj' -> 's3://rookbucket/rookObj'  [1 of 1]
+        11 of 11   100% in    0s   203.32 B/s  done
+        ```
+
+      - download and verify the file from the bucket
+
+        ```bash
+        [root@ip-172-20-35-247 /]# s3cmd get s3://rookbucket/rookObj /tmp/rookObj-download --no-ssl --host=${AWS_HOST} --host-bucket=
+        download: 's3://rookbucket/rookObj' -> '/tmp/rookObj-download'  [1 of 1]
+        11 of 11   100% in    0s   254.05 B/s  done
+        ```
+
+  - access external to the cluster
+    - setup an external service through a `NodePort`
+      - create the external service: `kubectl apply -f rgw-external.yaml`
+    - see both rgw services running and notice what port the external service is running on:
+  
+      ```bash
+      ➜  Rook git:(master) ✗ kubectl -n rook-ceph get service rook-ceph-rgw-my-store rook-ceph-rgw-my-store-external
+      NAME                              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+      rook-ceph-rgw-my-store            ClusterIP   100.67.71.247    <none>        80/TCP         42m
+      NAME                              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+      rook-ceph-rgw-my-store-external   NodePort    100.71.225.224   <none>        80:31079/TCP   14s
+      ```
+
+    - `curl http://ip:31079`
+
+      ```bash
+      <?xml version="1.0" encoding="UTF-8"?><ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>anonymous</ID><DisplayName></DisplayName></Owner><Buckets></Buckets></ListAllMyBucketsResult>
+      ```
+
+    - test with `s3test.py`
+      - remeber to expose the port
+
+      ```bash
+      ➜  Rook git:(master) ✗ python3 s3test.py
+      [<Key: my-new-bucket,test>]
+      b'this is a test of s3 bucket object storage'
+      ➜  Rook git:(master) ✗ python3 s3test.py
+      time consumption:  0.4648101329803467
+      time consumption:  0.6732494831085205
+      [<Key: my-new-bucket,test>, <Key: my-new-bucket,test_jpg>]
+      ```
+
+- [CephFS](http://www.yangguanjun.com/2018/12/22/rook-ceph-practice-part1/#%E5%88%9B%E5%BB%BACephFS)

@@ -97,3 +97,6 @@ kubeconfig
 
 # cdsctl
 *cdsctl
+
+# s3credentials
+credentials.json
