@@ -145,3 +145,13 @@ Rook with Ceph is at Stable status where others are Alpha or Beta
   - `minikube stop`
 
 - [x] TODO: Rook with Ceph on aws
+
+## cluster-update
+
+> https://github.com/rook/rook/blob/master/design/cluster-update.md
+
+- Watch the list of K8s nodes
+- If a node is added and useAllNodes: true, trigger an orchestration
+- OSDs will be configured on the new node(s)
+
+the problem is whether it can automatically request more resources on aws like EKS?
