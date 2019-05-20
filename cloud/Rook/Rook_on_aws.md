@@ -547,3 +547,5 @@ rook-ceph       Active   9m10s
       ```
 
     - still `wrong fs type, bad option, bad superblock`
+    - after changing 'fstype' from `xfs` to `ext4` in `storageclass2.yaml`, this got solved: `test-pod-rbd2                                               1/1     Running             0          6m47s`
+    - but why? i thought ceph should take storage as raw and formate it by itself, but it seems not? need investigate more about ceph...
