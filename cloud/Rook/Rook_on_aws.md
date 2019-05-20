@@ -472,4 +472,78 @@ rook-ceph       Active   9m10s
       ```
 
     - why `failed to mount volume /dev/rbd0 [xfs]`?
-    - > [similar confi with this example but why i failed?](https://docs.openshift.com/container-platform/3.5/install_config/storage_examples/ceph_rbd_dynamic_example.html#ceph-rbd-dynamic-example-setting-default-secret)
+    - > [similar config with this example but why i failed?](https://docs.openshift.com/container-platform/3.5/install_config/storage_examples/ceph_rbd_dynamic_example.html#ceph-rbd-dynamic-example-setting-default-secret)
+    - > https://github.com/kubernetes/kubernetes/issues/49926
+    - > https://rook.io/docs/rook/v1.0/ceph-common-issues.html
+    - after setting `- name: FLEXVOLUME_DIR_PATH
+          value: "/usr/libexec/kubernetes/kubelet-plugins/volume/exec"`
+    - `kubectl logs -n rook-ceph -l app=rook-ceph-agent`
+
+      ```bash
+      ➜  Rook git:(master) ✗ kubectl logs -n rook-ceph -l app=rook-ceph-agent   
+      Mounting arguments: --description=Kubernetes transient mount for /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa --scope -- mount -t xfs -o rw,defaults /dev/rbd0 /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa
+      Output: Running scope as unit: run-rbc08d48ef7db412f83f1886ce1a75fe8.scope
+      mount: wrong fs type, bad option, bad superblock on /dev/rbd0,
+            missing codepage or helper program, or other error
+
+            In some cases useful info is found in syslog - try
+            dmesg | tail or so.
+
+      E0520 02:45:04.309894   22217 mount_linux.go:487] format of disk "/dev/rbd0" failed: type:("xfs") target:("/var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa") options:(["rw" "defaults"])error:(executable file not found in $PATH)
+      2019-05-20 02:45:04.310883 E | flexdriver: mount volume replicapool/pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa failed: failed to mount volume /dev/rbd0 [xfs] to /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-fa0bc653-7889-11e9-a3e2-0a96c25a44aa, error executable file not found in $PATH
+      ```
+
+    - error log for `storageclass2`
+
+      ```bash
+      2019-05-20 02:36:35.690347 I | flexdriver: E0520 02:36:35.670261   17431 mount_linux.go:143] Mount failed: exit status 32
+      Mounting command: systemd-run
+      Mounting arguments: --description=Kubernetes transient mount for /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-f8d9378c-7aa4-11e9-a3e2-0a96c25a44aa --scope -- mount -t gp2 -o rw,defaults /dev/rbd1 /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-f8d9378c-7aa4-11e9-a3e2-0a96c25a44aa
+      Output: Running scope as unit: run-r5b8704f415f140a8bf013882a8c9d4a7.scope
+      mount: unknown filesystem type 'gp2'
+
+      E0520 02:36:35.690188   17431 mount_linux.go:487] format of disk "/dev/rbd1" failed: type:("gp2") target:("/var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-f8d9378c-7aa4-11e9-a3e2-0a96c25a44aa") options:(["rw" "defaults"])error:(executable file not found in $PATH)
+      2019-05-20 02:36:35.690712 E | flexdriver: mount volume gppool/pvc-f8d9378c-7aa4-11e9-a3e2-0a96c25a44aa failed: failed to mount volume /dev/rbd1 [gp2] to /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-f8d9378c-7aa4-11e9-a3e2-0a96c25a44aa, error executable file not found in $PATH
+      ```
+
+    - > https://stackoverflow.com/questions/51508493/kubernetes-kops-set-sysctl-flag-on-kubelet
+    - > https://github.com/kubernetes/kops/blob/master/docs/cluster_spec.md
+    - > `kops edit cluster` -> add `volume-plugin-dir: PATH_TO_FLEXVOLUME` under `kubelet` label -> `kops update cluster --name ${KOPS_CLUSTER_NAME} --yes` -> `kops upgrade cluster `
+    - delete all pods under `rook-ceph`: `kubectl delete --all pods --namespace=rook-ceph`
+    - delete all pv: `kubectl delete pv --all --force --grace-period=0` [reference](https://medium.com/@miyurz/kubernetes-deleting-resource-like-pv-with-force-and-grace-period-0-still-keeps-pvs-in-3f4ad8710e51)
+    - delete all pvc: `kubectl delete pvc --all`
+    - check sc: `kubectl get sc`, delete sc: `kubectl delete sc rook-ceph-block`
+    - recreate sc, pvc, pv
+    - re-config operator by setting `FLEXVOLUME_DIR_PATH` to `/var/lib/kubelet/volumeplugins`, after entering operator pod and checking with `mkdir`, both `/var/lib` and `/usr/libexec` is `rw`
+
+      ```bash
+      Events:
+      Type     Reason       Age               From                                    Message
+      ----     ------       ----              ----                                    -------
+      Normal   Scheduled    38s               default-scheduler                       Successfully assigned rook-ceph/test-pod-rbd to ip-172-20-35-247.ec2.internal
+      Warning  FailedMount  6s (x7 over 38s)  kubelet, ip-172-20-35-247.ec2.internal  MountVolume.SetUp failed for volume "pvc-80258357-7ab1-11e9-a3e2-0a96c25a44aa" : mount command failed, status: Failure, reason: Rook: Error getting RPC client: error connecting to socket /usr/libexec/kubernetes/kubelet-plugins/volume/exec/ceph.rook.io~rook-ceph/.rook.sock: dial unix /usr/libexec/kubernetes/kubelet-plugins/volume/exec/ceph.rook.io~rook-ceph/.rook.sock: connect: no such file or directory
+      ```
+
+    - it seems i have to change it back...
+    - now th error message becomes the original one...
+
+      ```bash
+      Events:
+      Type     Reason       Age               From                                    Message
+      ----     ------       ----              ----                                    -------
+      Normal   Scheduled    17s               default-scheduler                       Successfully assigned rook-ceph/test-pod-rbd to ip-172-20-35-247.ec2.internal
+      Warning  FailedMount  8s (x5 over 17s)  kubelet, ip-172-20-35-247.ec2.internal  MountVolume.SetUp failed for volume "pvc-80258357-7ab1-11e9-a3e2-0a96c25a44aa" : mount command failed, status: Failure, reason: failed to mount volume /dev/rbd2 [xfs] to /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-80258357-7ab1-11e9-a3e2-0a96c25a44aa, error executable file not found in $PATH
+      ```
+
+      ```bash
+      ➜  Rook git:(master) ✗ kubectl logs -n rook-ceph -l app=rook-ceph-agent
+      Mounting arguments: --description=Kubernetes transient mount for /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-80258357-7ab1-11e9-a3e2-0a96c25a44aa --scope -- mount -t xfs -o rw,defaults /dev/rbd1 /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-80258357-7ab1-11e9-a3e2-0a96c25a44aa
+      Output: Running scope as unit: run-rba551673f3694dd68403c831359908fb.scope
+      mount: wrong fs type, bad option, bad superblock on /dev/rbd1,
+            missing codepage or helper program, or other error
+
+            In some cases useful info is found in syslog - try
+            dmesg | tail or so.
+      ```
+
+    - still `wrong fs type, bad option, bad superblock`
