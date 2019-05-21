@@ -8,12 +8,10 @@ metadata:
 spec:
   containers:
   - name: test-pod
-    image: busybox:latest
+    image: alpine:latest
     command:
-    - "/bin/sh"
-    args:
-    - "-c"
-    - "trap exit TERM; while true; do sleep 1; done"
+    - "apk add xfsprogs"
+    - "ls /usr/sbin | grep mkfs"
     volumeMounts:
     - name: data
       mountPath: "/mnt"

@@ -566,6 +566,44 @@ rook-ceph       Active   9m10s
       pool 'replicapool' removed
       ```
 
+    - check whether pod has mkfs.xfs in $PATH: `ls /usr/sbin | grep mkfs`
+      - > https://github.com/ceph/ceph-csi/issues/87
+      - checked operator, osd, agent and mon, all have `mkfs.xfs`
+
+        ```bash
+        mkfs
+        mkfs.cramfs
+        mkfs.ext2
+        mkfs.ext3
+        mkfs.ext4
+        mkfs.minix
+        mkfs.xfs
+        ```
+
+      - still get the same error
+        - > https://github.com/rook/rook/issues/2917
+
+        ```bash
+        Mounting arguments: --description=Kubernetes transient mount for /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa --scope -- mount -t xfs -o rw,defaults /dev/rbd3 /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa
+        Output: Running scope as unit: run-ra198ced8d4aa4e2784505b21d9111108.scope
+        mount: wrong fs type, bad option, bad superblock on /dev/rbd3,
+              missing codepage or helper program, or other error
+
+              In some cases useful info is found in syslog - try
+              dmesg | tail or so.
+
+        Mounting arguments: --description=Kubernetes transient mount for /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa --scope -- mount -t xfs -o rw,defaults /dev/rbd3 /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa
+        Output: Running scope as unit: run-ra198ced8d4aa4e2784505b21d9111108.scope
+        mount: wrong fs type, bad option, bad superblock on /dev/rbd3,
+              missing codepage or helper program, or other error
+
+              In some cases useful info is found in syslog - try
+              dmesg | tail or so.
+
+        E0521 04:51:52.095623    6836 mount_linux.go:487] format of disk "/dev/rbd3" failed: type:("xfs") target:("/var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa") options:(["rw" "defaults"])error:(executable file not found in $PATH)
+        2019-05-21 04:51:52.095900 E | flexdriver: mount volume testpool/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa failed: failed to mount volume /dev/rbd3 [xfs] to /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa, error executable file not found in $PATH
+        ```
+
 - create object storage
 ![ceph object gateway](http://docs.ceph.com/docs/master/_images/ditaa-50d12451eb76c5c72c4574b08f0320b39a42e5f1.png)
   - https://github.com/rook/rook/blob/master/Documentation/ceph-object.md
