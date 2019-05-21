@@ -155,3 +155,33 @@ Rook with Ceph is at Stable status where others are Alpha or Beta
 - OSDs will be configured on the new node(s)
 
 the problem is whether it can automatically request more resources on aws like EKS?
+
+no, it will not.
+
+## Ceph Block Pool Custom Resource definitions (CRDs)
+
+> https://github.com/rook/rook/blob/master/Documentation/ceph-pool-crd.md
+
+**Erasure Coding**
+
+> Erasure coding allows you to keep your data safe while reducing the storage overhead. Instead of creating multiple replicas of the data, erasure coding divides the original data into chunks of equal size, then generates extra chunks of that same size for redundancy.
+>
+> For example, if you have an object of size 2MB, the simplest erasure coding with two data chunks would divide the object into two chunks of size 1MB each (data chunks). One more chunk (coding chunk) of size 1MB will be generated. In total, 3MB will be stored in the cluster. The object will be able to suffer the loss of any one of the chunks and still be able to reconstruct the original object.
+>
+> The number of data and coding chunks you choose will depend on your resiliency to loss and how much storage overhead is acceptable in your storage cluster. Here are some examples to illustrate how the number of chunks affects the storage and loss toleration.
+>
+| Data chunks (k) | Coding chunks (m) | Total storage | Losses Tolerated | OSDs required |
+| --------------- | ----------------- | ------------- | ---------------- | ------------- |
+| 2               | 1                 | 1.5x          | 1                | 3             |
+| 2               | 2                 | 2x            | 2                | 4             |
+| 4               | 2                 | 1.5x          | 2                | 6             |
+| 16              | 4                 | 1.25x         | 4                | 20            |
+>
+> The failureDomain must be also be taken into account when determining the number of chunks. The failure domain determines the level in the Ceph CRUSH hierarchy where the chunks must be uniquely distributed. This decision will impact whether node losses or disk losses are tolerated. There could also be performance differences of placing the data across nodes or osds.
+>
+> - `host`: All chunks will be placed on unique hosts
+> - `osd`: All chunks will be placed on unique OSDs
+>
+> If you do not have a sufficient number of hosts or OSDs for unique placement the pool can be created, although a PUT to the pool will hang.
+> [Ceph crush-map](http://docs.ceph.com/docs/master/rados/operations/crush-map/)
+> [Crush algorithm](https://ceph.com/wp-content/uploads/2016/08/weil-crush-sc06.pdf)

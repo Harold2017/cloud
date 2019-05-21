@@ -604,6 +604,9 @@ rook-ceph       Active   9m10s
         2019-05-21 04:51:52.095900 E | flexdriver: mount volume testpool/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa failed: failed to mount volume /dev/rbd3 [xfs] to /var/lib/kubelet/plugins/ceph.rook.io/rook-ceph/mounts/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa, error executable file not found in $PATH
         ```
 
+      - enven after i change `test-pvc-pod.yaml` docker image to `rook/ceph:master` (the same with `rook-ceph-oeprator` pod), the same error occurs
+      - i think the error is about ceph format process?
+
 - create object storage
 ![ceph object gateway](http://docs.ceph.com/docs/master/_images/ditaa-50d12451eb76c5c72c4574b08f0320b39a42e5f1.png)
   - https://github.com/rook/rook/blob/master/Documentation/ceph-object.md
