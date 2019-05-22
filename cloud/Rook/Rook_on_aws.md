@@ -606,6 +606,108 @@ rook-ceph       Active   9m10s
 
       - enven after i change `test-pvc-pod.yaml` docker image to `rook/ceph:master` (the same with `rook-ceph-oeprator` pod), the same error occurs
       - i think the error is about ceph format process?
+      - execute `dmesg | tail` on `rook-ceph-agent`
+
+        ```bash
+        [347694.572079] rbd: rbd2: capacity 8589934592 features 0x1
+        [347755.247200] XFS (rbd2): Invalid superblock magic number
+        [347756.366016] XFS (rbd2): Invalid superblock magic number
+        [347758.590891] XFS (rbd2): Invalid superblock magic number
+        [347762.708336] XFS (rbd2): Invalid superblock magic number
+        [347770.853719] XFS (rbd2): Invalid superblock magic number
+        [347786.969015] XFS (rbd2): Invalid superblock magic number
+        ```
+
+      - verify the filesystem version
+
+        ```bash
+        [root@ip-172-20-63-39 /]# echo "version" | xfs_db /dev/rbd2
+        xfs_db: /dev/rbd2 is not a valid XFS filesystem (unexpected SB magic number 0x00000000)
+        Use -F to force a read attempt.
+
+        [root@ip-172-20-63-39 /]# xfs_db /dev/rbd2 -F
+        xfs_db: /dev/rbd2 is not a valid XFS filesystem (unexpected SB magic number 0x00000000)
+        xfs_db: V1 inodes unsupported. Please try an older xfsprogs.
+        ```
+
+      - it seems a `xfsprogs` problem?
+      - try `xfs_repair -f /dev/rbd2` but `Phase 1 find and verify superblock... bad primary superblock - bad magic number !!! ... Sorry, could not find valid secondary superblock`
+      - since aws ebs should can be formated into any filesystem, so try to format it:
+
+        ```bash
+        [root@ip-172-20-63-39 /]# sudo mkfs -t xfs /dev/rbd2
+        meta-data=/dev/rbd2              isize=512    agcount=8, agsize=262144 blks
+                =                       sectsz=512   attr=2, projid32bit=1
+                =                       crc=1        finobt=0, sparse=0
+        data     =                       bsize=4096   blocks=2097152, imaxpct=25
+                =                       sunit=1024   swidth=1024 blks
+        naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+        log      =internal log           bsize=4096   blocks=2560, version=2
+                =                       sectsz=512   sunit=8 blks, lazy-count=1
+        realtime =none                   extsz=4096   blocks=0, rtextents=0
+        ```
+
+      - check rbd info within `rook-ceph-toolbox` pod
+
+        ```bash
+        [root@ip-172-20-35-247 /]# rbd info testpool/pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa
+        rbd image 'pvc-9e321d4c-7b83-11e9-a3e2-0a96c25a44aa':
+                size 8 GiB in 2048 objects
+                order 22 (4 MiB objects)
+                snapshot_count: 0
+                id: 43f7a1c30e051
+                block_name_prefix: rbd_data.43f7a1c30e051
+                format: 2
+                features: layering
+                op_features:
+                flags:
+                create_timestamp: Tue May 21 04:48:05 2019
+                access_timestamp: Tue May 21 04:48:05 2019
+                modify_timestamp: Tue May 21 04:48:05 2019
+        ```
+
+      - finally it works!!!
+
+        ```bash
+        test-pod-rbd                              1/1     Running   0          3s
+        ```
+      - try to repeat this procedure with `storageclass3.yaml, test-pvc3.yaml, test-pvc3-pod.yaml`
+      - found this message on `rook-ceph-agent`:
+
+        ```bash
+        [root@ip-172-20-63-39 /]# dmesg -T | tail
+        [Wed May 22 04:14:09 2019] rbd: rbd3: capacity 8589934592 features 0x1
+        [Wed May 22 04:15:10 2019] XFS (rbd3): Invalid superblock magic number
+        [Wed May 22 04:15:11 2019] XFS (rbd3): Invalid superblock magic number
+        [Wed May 22 04:15:13 2019] XFS (rbd3): Invalid superblock magic number
+        [Wed May 22 04:15:17 2019] XFS (rbd3): Invalid superblock magic number
+        [Wed May 22 04:15:26 2019] XFS (rbd3): Invalid superblock magic number
+        [Wed May 22 04:15:42 2019] XFS (rbd3): Invalid superblock magic number
+        ```
+
+      - still need format manually
+
+        ```bash
+        [root@ip-172-20-63-39 /]# mkfs -t xfs /dev/rbd3
+        meta-data=/dev/rbd3              isize=512    agcount=8, agsize=262144 blks
+                =                       sectsz=512   attr=2, projid32bit=1
+                =                       crc=1        finobt=0, sparse=0
+        data     =                       bsize=4096   blocks=2097152, imaxpct=25
+                =                       sunit=1024   swidth=1024 blks
+        naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+        log      =internal log           bsize=4096   blocks=2560, version=2
+                =                       sectsz=512   sunit=8 blks, lazy-count=1
+        realtime =none                   extsz=4096   blocks=0, rtextents=0
+        ```
+
+      - after format, all works well
+
+        ```bash
+        [Wed May 22 04:17:18 2019] XFS (rbd3): Mounting V5 Filesystem
+        [Wed May 22 04:17:18 2019] XFS (rbd3): Ending clean mount
+
+        test-pod3-rbd                             1/1     Running   0          3m29s
+        ```
 
 - create object storage
 ![ceph object gateway](http://docs.ceph.com/docs/master/_images/ditaa-50d12451eb76c5c72c4574b08f0320b39a42e5f1.png)

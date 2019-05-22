@@ -1,13 +1,13 @@
 kind: Pod
 apiVersion: v1
 metadata:
-  name: test-pod-rbd
+  name: test-pod3-rbd
   namespace: rook-ceph
   labels:
     test-rbd: "true"
 spec:
   containers:
-  - name: test-pod
+  - name: test-pod3
     image: busybox:latest
     command:
     - "/bin/sh"
@@ -21,4 +21,4 @@ spec:
   volumes:
   - name: data
     persistentVolumeClaim:
-      claimName: testclaim
+      claimName: testclaim3
