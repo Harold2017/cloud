@@ -137,3 +137,20 @@
     rook-discover-qr9km                                         1/1     Running     0          28m
     rook-discover-v992w                                         1/1     Running     1          2d6h
     ```
+
+- may be related to this? [kubernetes-nodelost-notready-high-io-disks](https://stackoverflow.com/questions/50479212/kubernetes-nodelost-notready-high-io-disks)
+
+## redis on rook/ceph
+
+it is very complicated to start a redis cluster with single yaml file...
+
+try to use helm
+
+> https://github.com/helm/charts/tree/master/stable/redis-ha
+
+## mongodb / mysql with helm
+
+> https://github.com/helm/charts/tree/master/stable/mongodb
+> https://github.com/helm/charts/tree/master/stable/mysql
+
+helm is awesome!
