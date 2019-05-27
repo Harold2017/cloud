@@ -7,3 +7,5 @@
 `kubens` helps you switch between Kubernetes namespaces smoothly
 
 they even support completion scripts...
+
+[kubeconfig](https://ahmet.im/blog/mastering-kubeconfig/)
