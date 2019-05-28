@@ -147,3 +147,174 @@ AWS CloudFont:
 > Rather than permitting potentially insecure machines to access a Ceph object store directly, users should be required to sign in to a trusted machine in your environment using a method that provides sufficient security for your purposes. That trusted machine will store the plaintext Ceph keys for the human users. A future version of Ceph may address these particular authentication issues more fully.
 >
 > At the moment, none of the Ceph authentication protocols provide secrecy for messages in transit. Thus, an eavesdropper on the wire can hear and understand all data sent between clients and servers in Ceph, even if he cannot create or alter them. Further, Ceph does not include options to encrypt user data in the object store. Users can hand-encrypt and store their own data in the Ceph object store, of course, but Ceph provides no features to perform object encryption itself. Those storing sensitive data in Ceph should consider encrypting their data before providing it to the Ceph system.
+
+## try download / upload large file with `s3test.py`(test5)
+
+```bash
+[root@ip-10-0-2-69 /]# radosgw-admin bucket list
+[
+    "my-new-bucket"
+]
+
+[root@ip-10-0-2-69 /]# radosgw-admin usage show
+{
+    "entries": [
+        {
+            "user": "anonymous",
+            "buckets": [
+                {
+                    "bucket": "",
+                    "time": "2019-05-27 10:00:00.000000Z",
+                    "epoch": 1558951200,
+                    "owner": "anonymous",
+                    "categories": [
+                        {
+                            "category": "list_buckets",
+                            "bytes_sent": 1155,
+                            "bytes_received": 0,
+                            "ops": 5,
+                            "successful_ops": 5
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "user": "my-user",
+            "buckets": [
+                {
+                    "bucket": "",
+                    "time": "2019-05-28 02:00:00.000000Z",
+                    "epoch": 1559008800,
+                    "owner": "my-user",
+                    "categories": [
+                        {
+                            "category": "list_buckets",
+                            "bytes_sent": 346,
+                            "bytes_received": 0,
+                            "ops": 1,
+                            "successful_ops": 1
+                        }
+                    ]
+                },
+                {
+                    "bucket": "my-new-bucket",
+                    "time": "2019-05-28 02:00:00.000000Z",
+                    "epoch": 1559008800,
+                    "owner": "my-user",
+                    "categories": [
+                        {
+                            "category": "create_bucket",
+                            "bytes_sent": 0,
+                            "bytes_received": 0,
+                            "ops": 1,
+                            "successful_ops": 1
+                        },
+                        {
+                            "category": "get_obj",
+                            "bytes_sent": 206789492,
+                            "bytes_received": 0,
+                            "ops": 4,
+                            "successful_ops": 4
+                        },
+                        {
+                            "category": "list_bucket",
+                            "bytes_sent": 3060,
+                            "bytes_received": 0,
+                            "ops": 4,
+                            "successful_ops": 4
+                        },
+                        {
+                            "category": "put_obj",
+                            "bytes_sent": 0,
+                            "bytes_received": 206789492,
+                            "ops": 4,
+                            "successful_ops": 4
+                        },
+                        {
+                            "category": "stat_bucket",
+                            "bytes_sent": 0,
+                            "bytes_received": 0,
+                            "ops": 4,
+                            "successful_ops": 4
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "summary": [
+        {
+            "user": "anonymous",
+            "categories": [
+                {
+                    "category": "list_buckets",
+                    "bytes_sent": 1155,
+                    "bytes_received": 0,
+                    "ops": 5,
+                    "successful_ops": 5
+                }
+            ],
+            "total": {
+                "bytes_sent": 1155,
+                "bytes_received": 0,
+                "ops": 5,
+                "successful_ops": 5
+            }
+        },
+        {
+            "user": "my-user",
+            "categories": [
+                {
+                    "category": "create_bucket",
+                    "bytes_sent": 0,
+                    "bytes_received": 0,
+                    "ops": 1,
+                    "successful_ops": 1
+                },
+                {
+                    "category": "get_obj",
+                    "bytes_sent": 206789492,
+                    "bytes_received": 0,
+                    "ops": 4,
+                    "successful_ops": 4
+                },
+                {
+                    "category": "list_bucket",
+                    "bytes_sent": 3060,
+                    "bytes_received": 0,
+                    "ops": 4,
+                    "successful_ops": 4
+                },
+                {
+                    "category": "list_buckets",
+                    "bytes_sent": 346,
+                    "bytes_received": 0,
+                    "ops": 1,
+                    "successful_ops": 1
+                },
+                {
+                    "category": "put_obj",
+                    "bytes_sent": 0,
+                    "bytes_received": 206789492,
+                    "ops": 4,
+                    "successful_ops": 4
+                },
+                {
+                    "category": "stat_bucket",
+                    "bytes_sent": 0,
+                    "bytes_received": 0,
+                    "ops": 4,
+                    "successful_ops": 4
+                }
+            ],
+            "total": {
+                "bytes_sent": 206792898,
+                "bytes_received": 206789492,
+                "ops": 18,
+                "successful_ops": 18
+            }
+        }
+    ]
+}
+```

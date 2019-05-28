@@ -20,8 +20,8 @@ set -o pipefail
 
 P_OPERATOR_VERSION=${1:-"v0.30.0"}
 mkdir tmp
-cp cloud/Prometheus/addon/boundle.yaml ${P_OPERATOR_VERSION}.yaml
-cp cloud/Prometheus/manifests/* tmp
+cp boundle.yaml ${P_OPERATOR_VERSION}.yaml
+cp manifests/* tmp
 for i in `ls tmp`
 do 
   echo "---" >> ${P_OPERATOR_VERSION}.yaml

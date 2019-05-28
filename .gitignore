@@ -100,3 +100,6 @@ kubeconfig
 
 # s3credentials
 credentials.json
+
+# .sb
+*.sb

@@ -54,8 +54,26 @@ def test3():
     print("time consumption: ", time.time() - start)
     print(b.get_all_keys())
 
+def test5():
+    conn = create_conn()
+    b = conn.get_bucket('my-new-bucket')
+    fk = Key(b)
+    fk.key = 'test_sb'
+    start = time.time()
+    fk.set_contents_from_filename('/home/harold/Desktop/dataset_expose/taiyou.sb')
+    print("time consumption: ", time.time() - start)
+    start = time.time()
+    fk.get_contents_to_filename('test_sb.sb')
+    print("time consumption: ", time.time() - start)
+    print(b.get_all_keys())
+    # time consumption:  102.47058463096619
+    # time consumption:  885.4887373447418
+    # [<Key: my-new-bucket,test>, <Key: my-new-bucket,test_jpg>, <Key: my-new-bucket,test_sb>]
+
+
 
 if __name__ == "__main__":
     # test1()
     # test2()
-    test3()
+    # test3()
+    test5()

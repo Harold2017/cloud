@@ -1,0 +1,9 @@
+alertmanager:
+  enabled: true
+  persistentVolume:
+    storageClass: rook-ceph-block-gp
+
+server:
+  persistentVolume:
+    storageClass: rook-ceph-block-gp
+    size: 20Gi
