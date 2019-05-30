@@ -11,6 +11,12 @@
   ],
   "__requires": [
     {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
+    },
+    {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
@@ -20,6 +26,12 @@
       "type": "panel",
       "id": "graph",
       "name": "Graph",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "heatmap",
+      "name": "Heatmap",
       "version": ""
     },
     {
@@ -65,7 +77,7 @@
   "gnetId": 8919,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1559115332660,
+  "iteration": 1559181203652,
   "links": [
     {
       "icon": "external link",
@@ -109,6 +121,400 @@
     },
     {
       "cacheTimeout": null,
+      "cards": {
+        "cardPadding": null,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#73BF69",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateOranges",
+        "exponent": 0.5,
+        "max": null,
+        "min": null,
+        "mode": "spectrum"
+      },
+      "dataFormat": "tsbuckets",
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 10,
+        "y": 0
+      },
+      "heatmap": {},
+      "hideTimeOverride": false,
+      "hideZeroBuckets": false,
+      "highlightCards": true,
+      "id": 16,
+      "interval": "",
+      "legend": {
+        "show": true
+      },
+      "links": [],
+      "pluginVersion": "6.1.6",
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "expr": "node_filefd_allocated{instance=~\"$node\"}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "10s",
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
+          "refId": "B"
+        }
+      ],
+      "title": "当前打开的文件描述符",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": null,
+      "yAxis": {
+        "decimals": null,
+        "format": "short",
+        "logBase": 1,
+        "max": null,
+        "min": null,
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": null,
+      "yBucketSize": null
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "",
+      "gridPos": {
+        "h": 11,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "id": 166,
+      "interval": "",
+      "links": [],
+      "options": {
+        "maxValue": 100,
+        "minValue": 0,
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": [
+          {
+            "color": "green",
+            "index": 0,
+            "value": null
+          },
+          {
+            "color": "red",
+            "index": 1,
+            "value": 80
+          }
+        ],
+        "valueMappings": [],
+        "valueOptions": {
+          "decimals": null,
+          "prefix": "",
+          "stat": "mean",
+          "suffix": "",
+          "unit": "percent"
+        }
+      },
+      "pluginVersion": "6.1.6",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{instance=~\"$node\",mountpoint=\"/\",fstype=~\"ext4|xfs\"} * 100) / node_filesystem_size_bytes {instance=~\"$node\",mountpoint=\"/\",fstype=~\"ext4|xfs\"})",
+          "format": "time_series",
+          "interval": "10s",
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "step": 20
+        }
+      ],
+      "title": "根分区使用率",
+      "type": "gauge"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "通过变量maxmount获取最大的分区。",
+      "gridPos": {
+        "h": 11,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "id": 154,
+      "interval": "",
+      "links": [],
+      "options": {
+        "maxValue": 100,
+        "minValue": 0,
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": [
+          {
+            "color": "green",
+            "index": 0,
+            "value": null
+          },
+          {
+            "color": "red",
+            "index": 1,
+            "value": 80
+          }
+        ],
+        "valueMappings": [],
+        "valueOptions": {
+          "decimals": null,
+          "prefix": "",
+          "stat": "mean",
+          "suffix": "",
+          "unit": "percent"
+        }
+      },
+      "pluginVersion": "6.1.6",
+      "repeat": null,
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{instance=~\"$node\",mountpoint=\"$maxmount\",fstype=~\"ext4|xfs\"} * 100) / node_filesystem_size_bytes {instance=~\"$node\",mountpoint=\"$maxmount\",fstype=~\"ext4|xfs\"})",
+          "format": "time_series",
+          "interval": "10s",
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "step": 20
+        }
+      ],
+      "title": "最大分区($maxmount)使用率",
+      "type": "gauge"
+    },
+    {
+      "cacheTimeout": null,
+      "columns": [],
+      "datasource": "${DS_PROMETHEUS}",
+      "description": "",
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 5,
+        "w": 10,
+        "x": 0,
+        "y": 1
+      },
+      "hideTimeOverride": true,
+      "id": 15,
+      "interval": "",
+      "links": [],
+      "pageSize": null,
+      "pluginVersion": "6.1.6",
+      "scroll": true,
+      "showHeader": true,
+      "sort": {
+        "col": 0,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "endpoint",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
+        },
+        {
+          "alias": "Total Startup Time",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "s"
+        },
+        {
+          "alias": "CPU Core Num",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 0,
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Total Memory",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #C",
+          "thresholds": [],
+          "type": "number",
+          "unit": "bytes"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "job",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "namespace",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "pod",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "service",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
+        },
+        {
+          "alias": "",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "__name__",
+          "thresholds": [],
+          "type": "hidden",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "expr": "time() - node_boot_time_seconds{instance=~\"$node\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "step": 40
+        },
+        {
+          "expr": "count(count(node_cpu_seconds_total{instance=~\"$node\", mode='system'}) by (cpu))",
+          "format": "table",
+          "instant": true,
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
+          "refId": "B"
+        },
+        {
+          "expr": "node_memory_MemTotal_bytes{instance=~\"$node\"}",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{instance}}",
+          "refId": "C"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "系统运行",
+      "transform": "table",
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": true,
       "colors": [
@@ -128,10 +534,10 @@
         "thresholdMarkers": true
       },
       "gridPos": {
-        "h": 5,
+        "h": 6,
         "w": 3,
-        "x": 7,
-        "y": 0
+        "x": 0,
+        "y": 6
       },
       "id": 20,
       "interval": null,
@@ -204,519 +610,6 @@
         "rgba(245, 54, 54, 0.9)"
       ],
       "datasource": "${DS_PROMETHEUS}",
-      "decimals": 0,
-      "description": "",
-      "format": "percent",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 3,
-        "x": 10,
-        "y": 0
-      },
-      "hideTimeOverride": false,
-      "id": 172,
-      "interval": "",
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "maxPerRow": 6,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "(1 - (node_memory_bytes_available{instance=~\"$node\"} / (node_memory_MemTotal_bytes{instance=~\"$node\"})))* 100",
-          "format": "time_series",
-          "hide": false,
-          "interval": "10s",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A",
-          "step": 20
-        }
-      ],
-      "thresholds": "80,90",
-      "title": "内存使用率",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPostfix": false,
-      "colorPrefix": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(50, 172, 45, 0.97)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(245, 54, 54, 0.9)"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "decimals": 2,
-      "description": "",
-      "format": "short",
-      "gauge": {
-        "maxValue": 10000,
-        "minValue": null,
-        "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 3,
-        "x": 13,
-        "y": 0
-      },
-      "hideTimeOverride": false,
-      "id": 16,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "maxPerRow": 6,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "node_filefd_allocated{instance=~\"$node\"}",
-          "format": "time_series",
-          "instant": false,
-          "interval": "10s",
-          "intervalFactor": 1,
-          "refId": "B"
-        }
-      ],
-      "thresholds": "7000,9000",
-      "title": "当前打开的文件描述符",
-      "type": "singlestat",
-      "valueFontSize": "70%",
-      "valueMaps": [],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(50, 172, 45, 0.97)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(245, 54, 54, 0.9)"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "decimals": null,
-      "description": "",
-      "format": "percent",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 16,
-        "y": 0
-      },
-      "id": 166,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "maxPerRow": 6,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "repeatDirection": "h",
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "100 - ((node_filesystem_avail_bytes{instance=~\"$node\",mountpoint=\"/\",fstype=~\"ext4|xfs\"} * 100) / node_filesystem_size_bytes {instance=~\"$node\",mountpoint=\"/\",fstype=~\"ext4|xfs\"})",
-          "format": "time_series",
-          "interval": "10s",
-          "intervalFactor": 1,
-          "refId": "A",
-          "step": 20
-        }
-      ],
-      "thresholds": "70,90",
-      "title": "根分区使用率",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(50, 172, 45, 0.97)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(245, 54, 54, 0.9)"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "decimals": null,
-      "description": "通过变量maxmount获取最大的分区。",
-      "format": "percent",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 20,
-        "y": 0
-      },
-      "id": 154,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "maxPerRow": 6,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "repeat": null,
-      "repeatDirection": "h",
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "100 - ((node_filesystem_avail_bytes{instance=~\"$node\",mountpoint=\"$maxmount\",fstype=~\"ext4|xfs\"} * 100) / node_filesystem_size_bytes {instance=~\"$node\",mountpoint=\"$maxmount\",fstype=~\"ext4|xfs\"})",
-          "format": "time_series",
-          "interval": "10s",
-          "intervalFactor": 1,
-          "refId": "A",
-          "step": 20
-        }
-      ],
-      "thresholds": "70,90",
-      "title": "最大分区($maxmount)使用率",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPostfix": false,
-      "colorPrefix": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(245, 54, 54, 0.9)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(50, 172, 45, 0.97)"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "decimals": 1,
-      "description": "",
-      "format": "s",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 2,
-        "x": 0,
-        "y": 1
-      },
-      "hideTimeOverride": true,
-      "id": 15,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "time() - node_boot_time_seconds{instance=~\"$node\"}",
-          "format": "time_series",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "",
-          "refId": "A",
-          "step": 40
-        }
-      ],
-      "thresholds": "1,2",
-      "title": "系统运行时间",
-      "type": "singlestat",
-      "valueFontSize": "100%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPostfix": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(245, 54, 54, 0.9)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(50, 172, 45, 0.97)"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "description": "",
-      "format": "short",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 2,
-        "y": 1
-      },
-      "id": 14,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "maxPerRow": 6,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "count(count(node_cpu_seconds_total{instance=~\"$node\", mode='system'}) by (cpu))",
-          "format": "time_series",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A",
-          "step": 20
-        }
-      ],
-      "thresholds": "1,2",
-      "title": "CPU 核数",
-      "type": "singlestat",
-      "valueFontSize": "100%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(50, 172, 45, 0.97)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(245, 54, 54, 0.9)"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
       "decimals": 2,
       "description": "",
       "format": "percent",
@@ -728,10 +621,10 @@
         "thresholdMarkers": true
       },
       "gridPos": {
-        "h": 5,
+        "h": 6,
         "w": 3,
-        "x": 4,
-        "y": 1
+        "x": 3,
+        "y": 6
       },
       "id": 167,
       "interval": null,
@@ -796,178 +689,62 @@
     },
     {
       "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(245, 54, 54, 0.9)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(50, 172, 45, 0.97)"
-      ],
       "datasource": "${DS_PROMETHEUS}",
-      "decimals": null,
       "description": "",
-      "format": "bytes",
-      "gauge": {
+      "gridPos": {
+        "h": 6,
+        "w": 10,
+        "x": 6,
+        "y": 6
+      },
+      "hideTimeOverride": false,
+      "id": 172,
+      "links": [],
+      "options": {
         "maxValue": 100,
         "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 2,
-        "y": 3
-      },
-      "id": 75,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": [
+          {
+            "color": "green",
+            "index": 0,
+            "value": null
+          },
+          {
+            "color": "red",
+            "index": 1,
+            "value": 80
+          }
+        ],
+        "valueMappings": [],
+        "valueOptions": {
+          "decimals": null,
+          "prefix": "",
+          "stat": "mean",
+          "suffix": "",
+          "unit": "none"
         }
-      ],
-      "maxDataPoints": 100,
-      "maxPerRow": 6,
-      "nullPointMode": "null",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "70%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
       },
-      "tableColumn": "",
+      "pluginVersion": "6.1.6",
       "targets": [
         {
-          "expr": "node_memory_MemTotal_bytes{instance=~\"$node\"}",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{instance=~\"$node\"} / (node_memory_MemTotal_bytes{instance=~\"$node\"})))* 100",
           "format": "time_series",
-          "instant": true,
-          "interval": "",
+          "hide": false,
+          "instant": false,
+          "interval": "10s",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}",
           "refId": "A",
           "step": 20
         }
       ],
-      "thresholds": "2,3",
-      "title": "内存总量",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPrefix": false,
-      "colorValue": true,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 5,
-        "x": 11,
-        "y": 5
-      },
-      "hideTimeOverride": false,
-      "id": 171,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "pluginVersion": "6.1.6",
-      "postfix": "GB",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "Value",
-      "targets": [
-        {
-          "expr": "sum(node_filesystem_size_bytes{instance=~\"$node\",fstype=~\"ext4|xfs\"} / 1024 / 1024 / 1024)",
-          "format": "table",
-          "instant": true,
-          "interval": "10s",
-          "intervalFactor": 1,
-          "legendFormat": "{{mountpoint}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": "",
       "timeFrom": null,
       "timeShift": null,
-      "title": "磁盘总空间",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "avg"
+      "title": "内存使用率",
+      "type": "gauge"
     },
     {
       "columns": [],
@@ -977,7 +754,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 5
+        "y": 11
       },
       "id": 164,
       "links": [],
@@ -1179,7 +956,7 @@
         "h": 6,
         "w": 11,
         "x": 0,
-        "y": 6
+        "y": 12
       },
       "height": "300",
       "id": 13,
@@ -1283,6 +1060,94 @@
       }
     },
     {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorPrefix": false,
+      "colorValue": true,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": "${DS_PROMETHEUS}",
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 11,
+        "y": 12
+      },
+      "hideTimeOverride": false,
+      "id": 171,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.1.6",
+      "postfix": "GB",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "Value",
+      "targets": [
+        {
+          "expr": "sum(node_filesystem_size_bytes{instance=~\"$node\",fstype=~\"ext4|xfs\"} / 1024 / 1024 / 1024)",
+          "format": "table",
+          "instant": true,
+          "interval": "10s",
+          "intervalFactor": 1,
+          "legendFormat": "{{mountpoint}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "磁盘总空间",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "avg"
+    },
+    {
       "aliasColors": {
         "内存_Avaliable": "#6ED0E0",
         "内存_Cached": "#EF843C",
@@ -1302,7 +1167,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 11
+        "y": 17
       },
       "height": "300",
       "id": 156,
@@ -1463,7 +1328,7 @@
         "h": 7,
         "w": 16,
         "x": 0,
-        "y": 12
+        "y": 18
       },
       "id": 7,
       "legend": {
@@ -1599,7 +1464,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 18
+        "y": 24
       },
       "height": "300",
       "id": 160,
@@ -1724,7 +1589,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 19
+        "y": 25
       },
       "height": "300",
       "id": 161,
@@ -1845,7 +1710,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 19
+        "y": 25
       },
       "height": "300",
       "id": 168,
@@ -1951,7 +1816,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 33
       },
       "height": "300",
       "id": 157,
@@ -2060,7 +1925,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 33
       },
       "height": "300",
       "id": 158,
@@ -2398,5 +2263,5 @@
   "timezone": "browser",
   "title": "Monitor of Node Exporter for Prometheus",
   "uid": "9CWBz0bik",
-  "version": 4
+  "version": 6
 }
