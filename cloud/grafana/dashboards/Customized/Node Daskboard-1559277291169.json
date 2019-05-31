@@ -172,7 +172,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node:cluster_cpu_utilisation:ratio",
+          "expr": "node:node_cpu_utilisation:avg1m",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -200,7 +200,8 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "decimals": null,
+          "format": "percentunit",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -208,7 +209,7 @@
           "show": true
         },
         {
-          "format": "short",
+          "format": "percentunit",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -258,14 +259,12 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node:cluster_memory_utilisation:ratio",
+          "expr": "(node:node_memory_bytes_total:sum - node:node_memory_bytes_available:sum)/node:node_memory_bytes_total:sum",
           "format": "time_series",
-          "hide": false,
-          "instant": false,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "{{node}}",
-          "refId": "A"
+          "refId": "B"
         }
       ],
       "thresholds": [],
@@ -288,16 +287,17 @@
       },
       "yaxes": [
         {
-          "format": "short",
-          "label": null,
+          "format": "percentunit",
+          "label": "",
           "logBase": 1,
           "max": null,
           "min": null,
           "show": true
         },
         {
-          "format": "short",
-          "label": null,
+          "decimals": null,
+          "format": "percent",
+          "label": "",
           "logBase": 1,
           "max": null,
           "min": null,
