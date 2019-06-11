@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rook-ceph-rgw-my-store-external-ingress
+  namespace: rook-ceph
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /rookbucket
+        backend:
+          serviceName: rook-ceph-rgw-my-store
+          servicePort: 80

@@ -791,9 +791,39 @@ rook-ceph       Active   9m10s
         11 of 11   100% in    0s   254.05 B/s  done
         ```
 
-  - access external to the cluster
+  - [access external to the cluster](https://github.com/rook/rook/pull/1083)
+    - [k8s service](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
     - setup an external service through a `NodePort`
       - create the external service: `kubectl apply -f rgw-external.yaml`
+    - setup an external service through [ingress](https://kubernetes.github.io/ingress-nginx/)
+      - [reference](https://github.com/rook/rook/commit/22f2dfc49b34aafe4dfbec738ceaf486b29911a7)
+      - save the ingress resource `rgw-external-ingress.yaml`
+      - create the ingress resource: `kubectl apply -f rgw-external-ingress.yaml`
+      - see the ingress controller:
+  
+        ```bash
+        ➜  cloud git:(master) ✗ kubectl -n rook-ceph get ingress
+        NAME                                      HOSTS     ADDRESS   PORTS   AGE
+        rook-ceph-rgw-my-store-external-ingress   my-host             80      2m43s
+        ```
+
+      - but i do NOT have a `host`, so change the [ingress rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules)
+      - access from [link](https://ip/<bucket-name>)
+        - [authentication](http://docs.ceph.com/docs/master/radosgw/s3/authentication/)
+        - use `Postman`, choose `Auth`, type `AWS Signature`, fill in `AccessKey` and `SecretKey`, fill in `AWS Region` and `Service Name`
+        - send `GET` request
+
+          ```bash
+          <?xml version="1.0" encoding="UTF-8"?>
+          <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+              <Name>rookbucket</Name>
+              <Prefix></Prefix>
+              <Marker></Marker>
+              <MaxKeys>1000</MaxKeys>
+              <IsTruncated>false</IsTruncated>
+          </ListBucketResult>
+          ```
+
     - see both rgw services running and notice what port the external service is running on:
   
       ```bash
