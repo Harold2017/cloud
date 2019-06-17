@@ -1,0 +1,9 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:3000
+functions:
+  hello-python:
+    lang: python
+    handler: openfaas/functions/hello-python
+    image: harold2017/hello-python:latest
