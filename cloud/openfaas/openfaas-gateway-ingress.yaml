@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: openfaas-gateway-ingress
+  namespace: openfaas
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /openfaas
+        backend:
+          serviceName: gateway
+          servicePort: 8080

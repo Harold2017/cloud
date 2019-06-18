@@ -160,3 +160,167 @@ qrcode-go                       3               1
 Handling connection for 3000
 {"found": true}
 ```
+
+```bash
+# pre-set-env
+➜  cloud git:(master) export PASSWORD=f99883697dac5606416c112400b85351f82d2a1e
+➜  cloud git:(master) export OPENFAAS_URL=http://127.0.0.1:3000
+➜  cloud git:(master) export KUBECONFIG=./kubeconfig
+➜  cloud git:(master) ✗ kubectl port-forward -n openfaas svc/gateway 3000:8080 &
+```
+
+### Ingress
+
+```bash
+➜  cloud git:(master) ✗ kubectl get ingress --all-namespaces
+NAMESPACE   NAME                                      HOSTS                    ADDRESS   PORTS   AGE
+openfaas    openfaas-gateway-ingress                  *                                  80      14m
+openfaas    openfaas-ingress                          gateway.openfaas.local             80      19h
+rook-ceph   rook-ceph-rgw-my-store-external-ingress   *                                  80      6d23h
+
+➜  cloud git:(master) ✗ kubectl describe ingress openfaas-gateway-ingress -n openfaas
+Name:             openfaas-gateway-ingress
+Namespace:        openfaas
+Address:
+Default backend:  default-http-backend:80 (<none>)
+Rules:
+  Host  Path  Backends
+  ----  ----  --------
+  *
+        /openfaas   gateway:8080 (10.32.0.9:8080)
+Annotations:
+  kubectl.kubernetes.io/last-applied-configuration:  {"apiVersion":"extensions/v1beta1","kind":"Ingress","metadata":{"annotations":{"kubernetes.io/ingress.class":"nginx"},"name":"openfaas-gateway-ingress","namespace":"openfaas"},"spec":{"rules":[{"http":{"paths":[{"backend":{"serviceName":"gateway","servicePort":8080},"path":"/openfaas"}]}}]}}
+
+  kubernetes.io/ingress.class:  nginx
+Events:
+  Type    Reason  Age   From                      Message
+  ----    ------  ----  ----                      -------
+  Normal  CREATE  19m   nginx-ingress-controller  Ingress openfaas/openfaas-gateway-ingress
+
+# can NOT login...
+➜  cloud git:(master) ✗ faas-cli login --gateway https://xxx.compute-1.amazonaws.com/openfaas --password=f99883697dac5606416c112400b85351f82d2a1e
+WARNING! Using --password is insecure, consider using: cat ~/faas_pass.txt | faas-cli login -u user --password-stdin
+Calling the OpenFaaS server to validate the credentials...
+Cannot connect to OpenFaaS on URL: https://xxx.compute-1.amazonaws.com/openfaas. Get https://xxx.compute-1.amazonaws.com/openfaas/system/functions: x509: certificate is valid for ingress.local, not xxx.compute-1.amazonaws.com
+
+➜  cloud git:(master) ✗ faas-cli login --gateway https://<public-ip>/openfaas --password=f99883697dac5606416c112400b85351f82d2a1e
+WARNING! Using --password is insecure, consider using: cat ~/faas_pass.txt | faas-cli login -u user --password-stdin
+Calling the OpenFaaS server to validate the credentials...
+Cannot connect to OpenFaaS on URL: https://<public-ip>/openfaas. Get https://<public-ip>/openfaas/system/functions: x509: cannot validate certificate for <public-ip> because it doesn't contain any IP SANs
+```
+
+it seems openfaas requires TLS/SSL validation...
+
+[ingress TLS](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)
+
+[openfaas SSL](https://docs.openfaas.com/reference/ssl/kubernetes-with-cert-manager/)
+
+remeber change letsencrypt-issuer staging server to `https://acme-staging-v02.api.letsencrypt.org/directory`
+
+after setting TLS...
+
+```bash
+➜  cloud git:(master) ✗ faas-cli login --gateway https://xxx.compute-1.amazonaws.com/openfaas --password=f99883697dac5606416c112400b85351f82d2a1e
+WARNING! Using --password is insecure, consider using: cat ~/faas_pass.txt | faas-cli login -u user --password-stdin
+Calling the OpenFaaS server to validate the credentials...
+Cannot connect to OpenFaaS on URL: https://xxx.compute-1.amazonaws.com/openfaas. Get https://xxx.compute-1.amazonaws.com/openfaas/system/functions: x509: certificate signed by unknown authority
+```
+
+change issuer from `staging` to `prod` in `tls.yml` abd `openfaas-crt.yaml`...
+
+```bash
+# crt NOT READY
+➜  cloud git:(master) ✗ kubectl -n openfaas get certificate,secret openfaas-crtNAME                                          READY   SECRET         AGE
+certificate.certmanager.k8s.io/openfaas-crt   False   openfaas-crt   4m
+
+NAME                  TYPE                DATA   AGE
+secret/openfaas-crt   kubernetes.io/tls   3      22m
+
+➜  cloud git:(master) ✗ kubectl describe certificate openfaas-crt -n openfaas  
+...
+Status:
+  Conditions:
+    Last Transition Time:  2019-06-18T03:46:28Z
+    Message:               Certificate issuance in progress. Temporary certificate issued.
+    Reason:                TemporaryCertificate
+    Status:                False
+    Type:                  Ready
+Events:
+  Type    Reason        Age    From          Message
+  ----    ------        ----   ----          -------
+  Normal  OrderCreated  5m23s  cert-manager  Created Order resource "openfaas-crt-2327551295"
+```
+
+check the logs...
+
+```bash
+➜  cloud git:(master) ✗ kubectl logs svc/cert-manager-webhook -n cert-manager
+```
+
+[v0.7 on GKE stops after temporary cert (no order events or challenges)](https://github.com/jetstack/cert-manager/issues/1475)
+
+change to version 0.8
+
+```bash
+➜  cloud git:(master) ✗ kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
+
+➜  cloud git:(master) ✗ kubectl create namespace cert-manager
+
+➜  cloud git:(master) ✗ kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
+
+➜  cloud git:(master) ✗ helm install \
+  --name cert-manager \
+  --namespace cert-manager \
+  --version v0.8.0 \
+  jetstack/cert-manager
+
+➜  cloud git:(master) ✗ kubectl apply -f openfaas/letsencrypt-issuer.yaml 
+
+➜  cloud git:(master) ✗ helm upgrade openfaas \
+    --namespace openfaas \
+    --reuse-values \
+    --values openfaas/tls.yml \
+    openfaas/openfaas
+
+➜  cloud git:(master) ✗ kubectl apply -f openfaas/openfaas-crt.yaml
+
+# always stuck here even i re-create everything
+I0618 04:45:45.643446       1 logger.go:38] Calling CreateOrder
+E0618 04:45:45.726791       1 controller.go:200] cert-manager/controller/orders "msg"="re-queuing item  due to error processing" "error"="error creating new order: acme: urn:ietf:params:acme:error:rejectedIdentifier: Error creating new order :: Policy forbids issuing for name" "key"="openfaas/openfaas-crt-2327551295" 
+I0618 04:45:55.727121       1 controller.go:198] cert-manager/controller/orders "level"=0 "msg"="syncing resource" "key"="openfaas/openfaas-crt-2327551295" 
+I0618 04:45:55.727436       1 logger.go:38] Calling CreateOrder
+E0618 04:45:55.827490       1 controller.go:200] cert-manager/controller/orders "msg"="re-queuing item  due to error processing" "error"="error creating new order: acme: urn:ietf:params:acme:error:rejectedIdentifier: Error creating new order :: Policy forbids issuing for name" "key"="openfaas/openfaas-crt-2327551295"
+```
+
+change namespace to `cert-manager-v08` and redo...
+
+```bash
+➜  cloud git:(master) ✗ kubectl describe certificate openfaas-crt -n openfaas
+...
+Status:
+  Conditions:
+    Last Transition Time:  2019-06-18T04:54:29Z
+    Message:               Certificate issuance in progress. Temporary certificate issued.
+    Reason:                TemporaryCertificate
+    Status:                False
+    Type:                  Ready
+Events:
+  Type    Reason              Age   From          Message
+  ----    ------              ----  ----          -------
+  Normal  Generated           18s   cert-manager  Generated new private key
+  Normal  GenerateSelfSigned  18s   cert-manager  Generated temporary self signed certificate
+  Normal  OrderCreated        18s   cert-manager  Created Order resource "openfaas-crt-2327551295"
+
+# still get this error...
+I0618 04:54:30.245632       1 controller.go:167] cert-manager/controller/certificates "level"=0 "msg"="syncing resource" "key"="openfaas/openfaas-crt" 
+I0618 04:54:30.246345       1 issue.go:169] cert-manager/controller/certificates "level"=0 "msg"="Order is not in 'valid' state. Waiting for Order to transition before attempting to issue Certificate." "related_resource_kind"="Order" "related_resource_name"="openfaas-crt-2327551295" "related_resource_namespace"="openfaas" "resource_kind"="Certificate" "resource_name"="openfaas-crt" "resource_namespace"="openfaas"
+I0618 04:54:30.247023       1 controller.go:173] cert-manager/controller/certificates "level"=0 "msg"="finished processing work item" "key"="openfaas/openfaas-crt"
+...
+I0618 04:57:06.047150       1 controller.go:198] cert-manager/controller/orders "level"=0 "msg"="syncing resource" "key"="openfaas/openfaas-crt-2327551295" 
+I0618 04:57:06.047429       1 logger.go:38] Calling CreateOrder
+E0618 04:57:07.172236       1 controller.go:200] cert-manager/controller/orders "msg"="re-queuing item  due to error processing" "error"="error creating new order: acme: urn:ietf:params:acme:error:rejectedIdentifier: Error creating new order :: Policy forbids issuing for name" "key"="openfaas/openfaas-crt-2327551295"
+```
+
+[Policy forbids issuing for name on Amazon EC2 domain](https://community.letsencrypt.org/t/policy-forbids-issuing-for-name-on-amazon-ec2-domain/12692)
+
+WTF!

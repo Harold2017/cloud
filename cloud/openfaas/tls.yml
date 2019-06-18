@@ -1,0 +1,16 @@
+# tls.yml
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/issuer: letsencrypt-prod
+    certmanager.k8s.io/acme-challenge-type: http01
+  tls:
+    - hosts:
+        - xxx.amazonaws.com
+      secretName: openfaas-crt
+  hosts:
+    - host: xxx.compute-1.amazonaws.com
+      serviceName: gateway
+      servicePort: 8080
+      path: /openfaas

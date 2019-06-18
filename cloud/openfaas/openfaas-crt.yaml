@@ -1,0 +1,18 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: openfaas-crt
+  namespace: openfaas
+spec:
+  secretName: openfaas-crt
+  issuerRef:
+    name: letsencrypt-prod
+    kind: Issuer
+  dnsNames:
+  - xxx.compute-1.amazonaws.com
+  acme:
+    config:
+    - http01:
+        ingressClass: nginx
+      domains:
+      - xxx.amazonaws.com
