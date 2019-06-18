@@ -27,3 +27,5 @@ An API object that manages external access to the services in a cluster, typical
 > https://kubernetes.io/docs/concepts/services-networking/service/
 >
 > A Kubernetes `Service` is an abstraction which defines a logical set of `Pods` and a policy by which to access them - sometimes called a micro-service. The set of `Pods` targeted by a `Service` is (usually) determined by a [Label Selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors).
+
+[ingress api group will be changed](https://github.com/kubernetes/enhancements/blob/master/keps/sig-network/20190125-ingress-api-group.md)
