@@ -336,3 +336,7 @@ Server returned unexpected status code: 404 - 404 page not found
 all failed...
 
 will try later after getting my own domain name
+
+## NodePort
+
+connect with gateway-external (NodePort) (http://<ip>:3112 with `basic auth`)
