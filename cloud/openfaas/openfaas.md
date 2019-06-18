@@ -324,3 +324,15 @@ E0618 04:57:07.172236       1 controller.go:200] cert-manager/controller/orders 
 [Policy forbids issuing for name on Amazon EC2 domain](https://community.letsencrypt.org/t/policy-forbids-issuing-for-name-on-amazon-ec2-domain/12692)
 
 WTF!
+
+```bash
+# use tls-no-verify tag
+➜  cloud git:(master) faas-cli login --gateway https://xxx.compute-1.amazonaws.com/openfaas --tls-no-verify --username admin --password=f99883697dac5606416c112400b85351f82d2a1e
+WARNING! Using --password is insecure, consider using: cat ~/faas_pass.txt | faas-cli login -u user --password-stdin
+Calling the OpenFaaS server to validate the credentials...
+Server returned unexpected status code: 404 - 404 page not found
+```
+
+all failed...
+
+will try later after getting my own domain name
