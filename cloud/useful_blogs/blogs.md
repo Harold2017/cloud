@@ -28,9 +28,13 @@
 
 [Go channel source code analysis](http://legendtkl.com/2017/08/06/golang-channel-implement/)
 
+[Understanding golang channel](http://legendtkl.com/2017/07/30/understanding-golang-channel/)
+
 [Golang memory management](http://legendtkl.com/2017/04/02/golang-alloc/)
 
 [Go concurrency model](http://blog.taohuawu.club/article/42)
+
+[Go concurrency visualize](https://divan.dev/posts/go_concurrency_visualize/)
 
 #### Garbage Collection
 
