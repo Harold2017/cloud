@@ -40,6 +40,7 @@
 
 [Golang GC](http://legendtkl.com/2017/04/28/golang-gc/)
 [Go tool trace](https://making.pusher.com/go-tool-trace/)
+[Optimize golang gc](http://guileen.github.io/2016/06/15/how-did-i-optimize-golang-gc/)
 
 #### Micro
 
