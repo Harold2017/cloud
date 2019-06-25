@@ -39,6 +39,7 @@
 #### Garbage Collection
 
 [Golang GC](http://legendtkl.com/2017/04/28/golang-gc/)
+[Go tool trace](https://making.pusher.com/go-tool-trace/)
 
 #### Micro
 
