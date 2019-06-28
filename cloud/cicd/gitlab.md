@@ -471,3 +471,5 @@ Get the Drone URL by running:
 ```
 
 `Failed to load resource: the server responded with a status of 401 (Unauthorized)`
+
+it is a problem with `drone`'s `gitlab server` config, my config is a `CLUSTERIP` but it always send request by treating it as a public ip...

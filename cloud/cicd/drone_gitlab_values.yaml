@@ -92,7 +92,7 @@ sourceControl:
     clientID: 7a60b75fb1e7c3182ed30766175134963a55144edd846d0b9a5385a2c1f6a993
     clientSecretKey: clientSecret
     clientSecretValue: 0ad9011216a997b70f1c082ed21045b1a3b60b55454ebde0808934eccdd22aae
-    server: http://100.68.46.57:80
+    server: http://100.68.197.194:80
   gitea:
     server:
   gogs:
