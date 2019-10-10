@@ -103,3 +103,7 @@ credentials.json
 
 # .sb
 *.sb
+
+# gardener
+landscape/
+sow/
